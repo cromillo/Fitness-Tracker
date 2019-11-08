@@ -2,43 +2,56 @@ const router = require("express").Router();
 const Workout = require("../models/workout.js");
 
 
-module.exports = router;
 
-router.get("/",function(req,res){
-  res.sendFile(path.join(__dirname,"../public/index.html"))
+
+
+router.get("/api/workouts", (req, res) => {
+  Workout.find()
+  .then(dbWorkouts => {
+    res.json(dbWorkouts);
+  }).catch(err => {
+    res.json(err)
+  })
+});
+
+router.post("/api/workouts", (req, res) => {
+  Workout.create({})
+  .then(dbWorkouts => {
+    res.json(dbWorkouts);
+  }).catch(err => {
+    res.json(err)
+  })
+});
+
+router.put("/api/workouts/:id", ({body, params}, res) => {
+  Workout.findByIdAndUpdate(
+    params.id, 
+    { $push: { exercises: body } }, 
+    { new: true, runValidators: true }
+  ).then(dbworkouts => {
+    res.json(dbworkouts);
+  }).catch(err => {
+    res.json(err)
+  })
 })
 
-app.get("/api/workouts", ({ body }, res) => {
-  db.Workout.create(body)
-    .then(({ _id }) => db.Workout.findOneAndUpdate({}, { $push: { books: _id } }, { new: true }))
-    .then(dbWorkout => {
-      res.json(dbWorkout);
-    })
-    .catch(err => {
-      res.json(err);
-    });
-});
 
-app.post("/api/workouts", ({ body }, res) => {
-  db.Workout.create(body)
-    .then(({ _id }) => db.Workout.findOneAndUpdate({}, { $push: { books: _id } }, { new: true }))
-    .then(dbWorkout => {
-      res.json(dbWorkout);
-    })
-    .catch(err => {
-      res.json(err);
-    });
-});
+router.get("/api/workouts/range", ({ query }, res) => {
+  Workout.find( { day: { $gte: query.start, $lte: query.end } })
+  .then(dbworkouts => {
+    res.json(dbworkouts);
+  }).catch(err => {
+    res.json(err)
+  })
+})
 
+router.delete("/api/workouts", ({ body }, res) => {
+  Workout.findByIdAndDelete(body.id)
+  .then(() => {
+    res.json(true)
+  }).catch(err => {
+    res.json(err)
+  })
+})
 
-  app.get("/all", (req, res) => {
-    db.Workout.find({}, (err, data) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(data)
-        res.json(data);
-    }
-});
-});
-
+module.exports = router;
